@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/rohitCodeRed/iot-with-secure-mqtt#readme",
   "dependencies": {
+    "ejs": "^3.1.8",
     "express": "^4.18.2",
     "mqtt": "^4.3.7"
   }

@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('../partials/head'); %>
+</head>
+<body class="container">
+
+
+
+<main>
+  <div class="jumbotron">
+    <h1 id="serverInfoElem" data-ip="<%= ip %>" data-port="<%= port %>" data-ep="<%= endPoint %>">This is great</h1>
+    <p>Welcome to templating using EJS</p>
+  </div>
+</main>
+
+<footer>
+  <%- include('../partials/footer'); %>
+</footer>
+<%- include('./script'); %>
+</body>
+</html>
