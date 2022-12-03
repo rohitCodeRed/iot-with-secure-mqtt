@@ -2,6 +2,7 @@ const express = require('express'); //Import the express dependency
 const app = express();              //Instantiate an express app, the main work horse of this server
 const TEMPALTE_PATH = __dirname + "/templates";
 const {mQTT} = require("./mqtt");
+const fs = require('fs');
 const websocket = require("ws");
 const {handle_publish} = require("./mqtt_publisher");
 const {handle_subscription} = require("./mqtt_subscriber");
@@ -11,8 +12,8 @@ app.set('view engine', 'ejs');
 
 const SOCKET_CLIENT_CONNECTIONS =[];
 
-const MQTT_URL = "mqtt://192.168.8.101";
-const MQTT_PORT ="3000";
+const MQTT_URL = "mqtts://192.168.8.101";
+const MQTT_PORT ="8883";
 const SERVER_IP = "192.168.8.101";
 const SERVER_SOCKET_ENDPOINT="iot_sensors";
 const SERVER_URL = "http://192.168.8.101";
@@ -39,24 +40,21 @@ const server  = app.listen(SERVER_PORT, () => {            //server starts liste
 
 //Mqtt connection...
 let sMQTT = new mQTT(MQTT_URL,MQTT_PORT);
+let KEY = fs.readFileSync('./certs/client.key');
+let CERT = fs.readFileSync('./certs/client.crt');
+let CAfile = fs.readFileSync('./certs/ca.crt');
 let options = {
     clientId:"IOT_1",
-    //port:8883,
-    //host:'192.168.1.71',
-    //protocol:'mqtts',
-
-    /*rejectUnauthorized : false,
-    //if using client certificates
+    rejectUnauthorized : false,
     key: KEY,
     cert: CERT,
-    //
-    ca:caFile */
-    
+    ca:CAfile 
 };
 
 const mConnection = sMQTT.connect(options);
 
 mConnection.on('connect', function () {
+    console.log("Mqtt Broker connected...");
     mConnection.subscribe(TOPICS, function (err) {
       if (!err) {
         console.log("Topics :"+TOPICS+" are subscribed succesfully");
@@ -73,7 +71,7 @@ mConnection.on('message', function (topic, message) {
   });
 
 mConnection.on("error",function(error){ 
-    console.log("Can't connect"+error);
+    console.log("Can't connect-> "+error);
     mConnection.end();
 });
 

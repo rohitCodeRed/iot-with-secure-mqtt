@@ -10,7 +10,8 @@ class mQTT{
       }
 
     connect(options){
-        this.client  = mqtt.connect('mqtt://'+this.url+':'+this.port,options);
+        this.client  = mqtt.connect(this.url+':'+this.port,options);
+        //console.log("Is client connected: ",this.client.connected);
         return this.client;
     }    
 }
