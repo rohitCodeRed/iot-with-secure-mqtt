@@ -1,7 +1,8 @@
 
-function handle_publish(mqttConnection,socketConnection,data){
-
-    mqttConnection.publish(data.topic, data.message);
+function handle_publish(mqttConnection,socketConnection,inData){
+    if(mqttConnection){
+        mqttConnection.publish(inData.topic, inData["data"]["value"]);
+    } 
 }
 
 

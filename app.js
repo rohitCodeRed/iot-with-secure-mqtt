@@ -19,7 +19,7 @@ const SERVER_SOCKET_ENDPOINT="iot_sensors";
 const SERVER_URL = "http://192.168.8.101";
 const SERVER_PORT = 4000;
 
-const TOPICS=["iot_temperature","iot_humidity","iot_vibration","rgb_light"];
+const TOPICS=["sensor_data","rgb_light"];
 
 //Idiomatic expression in express to route and respond to a client request
 app.get('/', (req, res) => {        //get requests to the root ("/") will route here
@@ -27,7 +27,7 @@ app.get('/', (req, res) => {        //get requests to the root ("/") will route 
     res.render("pages/index",{
         "ip": SERVER_IP,
         "port":SERVER_PORT,
-        "endPoint": SERVER_SOCKET_ENDPOINT
+        "endPoint": SERVER_SOCKET_ENDPOINT,
       })                                                    //the .sendFile method needs the absolute path to the file, see: https://expressjs.com/en/4x/api.html#res.sendFile 
 });
 
@@ -57,7 +57,7 @@ mConnection.on('connect', function () {
     console.log("Mqtt Broker connected...");
     mConnection.subscribe(TOPICS, function (err) {
       if (!err) {
-        console.log("Topics :"+TOPICS+" are subscribed succesfully");
+        console.log("Topics: "+TOPICS+" are subscribed succesfully");
       }
     })
 });
@@ -65,7 +65,7 @@ mConnection.on('connect', function () {
 mConnection.on('message', function (topic, message) {
     // message is Buffer
     console.log("Topic: ",topic," ",message.toString());
-    let inData = {"topic":topic,"message":message};
+    let inData = {"topic":topic,"message":message.toString()};
     handle_subscription(mConnection,SOCKET_CLIENT_CONNECTIONS,inData);
     //client.end()
   });
@@ -80,18 +80,15 @@ mConnection.on("error",function(error){
 const wss = new websocket.Server({server:server,path:"/"+SERVER_SOCKET_ENDPOINT});
 
 wss.on("connection",(ws,req)=>{
-    console.log("Websocket working... client info:- ",req.headers.host," : ",req.headers['user-agent']);
+    console.log("Connected Client info:- ",req.headers.host," : ",req.headers['user-agent']);
     SOCKET_CLIENT_CONNECTIONS.push(ws);
 
     ws.on("message",(msg)=>{
-        
-        let pushData = {
-            topic:TOPICS[3],
-            data:msg
-        }
-        ws.send(JSON.stringify(pushData));
+        let pushData = JSON.parse(msg);
+        //ws.send(JSON.stringify(pushData));
 
-        //handle_publish(mConnection,ws,pushData);
-        //TODO from web site...
+        handle_publish(mConnection,ws,pushData);
     });
 });
+
+
