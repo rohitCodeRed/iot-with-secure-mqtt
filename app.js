@@ -19,7 +19,7 @@ const SERVER_SOCKET_ENDPOINT="iot_sensors";
 const SERVER_URL = "http://192.168.8.101";
 const SERVER_PORT = 4000;
 
-const TOPICS=["sensor_data","rgb_light"];
+const TOPICS=["sensor_data","vibrate_data","rgb_light"];
 
 //Idiomatic expression in express to route and respond to a client request
 app.get('/', (req, res) => {        //get requests to the root ("/") will route here

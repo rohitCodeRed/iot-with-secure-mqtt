@@ -3,74 +3,108 @@ var LED_STATE=false;
 var PORT = document.getElementById("serverInfoElem").getAttribute("data-port");
 var IP = document.getElementById("serverInfoElem").getAttribute("data-ip");
 var END_POINT = document.getElementById("serverInfoElem").getAttribute("data-ep");
-const SENSORS = [{"sensor":"Temperature","type":"celcius"},
-                      {"sensor":"Humidity","type":"%"},
-                      {"sensor":"Vibration","type":"binary"}
-                    ];
+
+const TEMP_HUM_SENSOR = [{"sensor":"Temperature","type":"celcius"},
+                      {"sensor":"Humidity","type":"%"}];
+
+const VIB_SENSOR = [{"sensor":"Vibration","type":"binary"}];
+
 const sampleData = {
                     "timestamp":"12",
+                    "topic":"sensor_data", //vibrate_data
                     "data":[
                       {"sensor":"Temperature","value":"32","type":"celcius"},
                       {"sensor":"Humidity","value":"14.5","type":"%"},
                       {"sensor":"Vibration","value":"1","type":"binary"}
                   ]};
 
+const chartOptions ={
+        scales: {
+            xAxes: [{
+              ticks: {
+                  autoSkip: true,
+                  maxRotation: 20
+              }
+            }],
+            yAxes: [{
+                  display: true,
+                  ticks: {
+                      beginAtZero: true,
+                      steps: 10,
+                      stepValue: 5,
+                      max: 100
+                  }
+            }]
+        }
+      };
 const CURRENT_INFO={
     ip:IP,
     port:PORT,
     endPoint:"\/"+END_POINT
 }
 
-var socket = new WebSocket("ws:\/\/"+CURRENT_INFO.ip+":"+CURRENT_INFO.port+CURRENT_INFO.endPoint);
-    // Connection opened
-    socket.addEventListener('open', (event) => {
-        //socket.send('Hello Server!, Send latest changed data..');
-        console.log("Socket established...");
-    });
 
-    // Listen for messages
-    socket.addEventListener('message', (event) => {
-        var serverData = JSON.parse(event.data);
-        console.log(serverData);
-        ADD_CHART_DATA(chartObj,serverData);
-        //TODO....
 
-    });
 
-    socket.addEventListener('close',()=>{
-        console.log("Connection got closed.. bye bye server");
-    });
-
-    socket.addEventListener("error",(err)=>{
-        console.log("Error occured", err);
-        console.log("Server info: ",CURRENT_INFO);
-    });
-
-    const gData = [
-    { year: 2010, count: 10 },
-    { year: 2011, count: 20 },
-    { year: 2012, count: 15 },
-    { year: 2013, count: 25 },
-    { year: 2014, count: 22 },
-    { year: 2015, count: 30 },
-    { year: 2016, count: 28 },
-  ];
-
-  let singleData ={year: 2017, count: 32 }
-
-  const chartObj = new Chart(
+//...................Chart function start..............................
+  const t_h_chart = new Chart(
     document.getElementById('tempLine'),
     {
       type: 'line',
       data: {
         labels: [],
-        datasets: SENSORS.map(sensor => { return {label: sensor["sensor"],data: [],"pointRadius":2,"tension":0.4,"borderWidth":1}; })
+        datasets: TEMP_HUM_SENSOR.map(sensor => { return {label: sensor["sensor"],data: [],"pointRadius":2,"tension":0.4,"borderWidth":1}; })
+      },
+      options: {
+        scales: {
+            x:{
+              ticks: {
+                  autoSkip: true,
+                  maxRotation: 20
+              }
+            },
+            y:{   
+                max: 100,
+                min:0,
+                display: true,
+                ticks: {
+                    beginAtZero: true,
+                }
+            }
+        }
       }
     }
   );
 
-  // ADD_DATA_SET(chartObj,gData);
-  //ADD_CHART_DATA(chartObj,sampleData);
+  const v_chart = new Chart(
+    document.getElementById('vibLine'),
+    {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: VIB_SENSOR.map(sensor => { return {label: sensor["sensor"],data: [],"pointRadius":1,"tension":0.4,"borderWidth":1}; })
+      },
+      options: {
+        scales: {
+          x:{
+              ticks: {
+                  autoSkip: true,
+                  maxRotation: 20
+              }
+            },
+            y:{
+                max: 2,
+                min: 0,
+                display: true,
+                ticks: {
+                    beginAtZero: true
+                }
+            }
+        }
+      }
+    }
+  );
+
 
   function ADD_CHART_DATA(pChart,pData){
     const data = pChart.data;
@@ -98,18 +132,44 @@ var socket = new WebSocket("ws:\/\/"+CURRENT_INFO.ip+":"+CURRENT_INFO.port+CURRE
     return sTime;   
   }
 
-  // function ADD_DATA_SET(pChart,pData){
-  //   const data = pChart.data;
-  //     const newDataset = {
-  //       label: 'Dataset ' + (data.datasets.length + 1),
-  //       data: pData.map(row => row.count + 12)
-  //     };
+  //...................Chart function end..................
 
-  //     pChart.data.datasets.push(newDataset);
-  //     pChart.update();
-  // }
+
+
+//----------Socket code start------------------------------------
+const socket = new WebSocket("ws:\/\/"+CURRENT_INFO.ip+":"+CURRENT_INFO.port+CURRENT_INFO.endPoint);
+    // Connection opened
+    socket.addEventListener('open', (event) => {
+        //socket.send('Hello Server!, Send latest changed data..');
+        console.log("Socket established...");
+    });
+
+    // Listen for messages
+    socket.addEventListener('message', (event) => {
+        var serverData = JSON.parse(event.data);
+        
+        if(serverData["topic"] == "sensor_data"){
+          ADD_CHART_DATA(t_h_chart,serverData);
+        }else if(serverData["topic"] == "vibrate_data"){
+          ADD_CHART_DATA(v_chart,serverData);
+        }
+
+        console.log(serverData);
+    });
+
+    socket.addEventListener('close',()=>{
+        console.log("Connection got closed.. bye bye server");
+    });
+
+    socket.addEventListener("error",(err)=>{
+        console.log("Error occured", err);
+        console.log("Server info: ",CURRENT_INFO);
+    });
 
 //----------Socket code end------------------------------------
+
+
+
 
 //button event code...
 var bulbSvg = document.querySelector('.bi-lightbulb-fill');
@@ -117,10 +177,10 @@ var ledBtn = document.querySelector('.btn');
 ledBtn.addEventListener('click', function () {
     LED_STATE = !LED_STATE;
     if(LED_STATE){
-      socket.send(JSON.stringify({"topic":"rgb_light","data":{"value":"ON"}}));
+      socket.send(JSON.stringify({"topic":"rgb_light","data":{"value":"Y"}}));
       bulbSvg.setAttribute("fill", "red");
     }else{
-      socket.send(JSON.stringify({"topic":"rgb_light","data":{"value":"OFF"}}));
+      socket.send(JSON.stringify({"topic":"rgb_light","data":{"value":"N"}}));
       bulbSvg.setAttribute("fill", "grey");
     }
 
