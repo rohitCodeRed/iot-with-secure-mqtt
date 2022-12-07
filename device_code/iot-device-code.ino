@@ -4,7 +4,7 @@
 #include "DHT.h"
 
 const char* ssid = "--------";
-const char* password = "---------";
+const char* password = "--------";
 
 IPAddress endPoint(192, 168, 8, 101);
 
@@ -149,7 +149,7 @@ void loop() {
      
      if (isnan(h) || isnan(t)) {
         Serial.println(F("Failed to read from DHT sensor!"));
-        return;
+        //return;
      }
      
     String msg = String(t,2);     // empty string
@@ -194,8 +194,10 @@ void msgReceived(char* topic, byte* payload, unsigned int length) {
   Serial.print("Message received on Topic:- "); Serial.print(topic); Serial.print(": "); Serial.print((char)payload[0]);
   if ((char)payload[0] == 'Y'){
     LED = true;
+    //boolean rc = pubSubClient.publish("rgb_light", "Y");
   }else{
     LED = false;
+    //boolean rc = pubSubClient.publish("rgb_light", "N");
    }
 }
 

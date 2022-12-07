@@ -36,6 +36,13 @@ function formData(data){
         ]
     };
 
+    let light_data={
+        "timestamp":parseInt((currentDate.getTime())/1000),
+        "data":[
+            {"sensor":"light","value":"Y","type":"char"}
+        ]
+    }
+
     if(data){
         if(data["topic"] == "sensor_data"){
             let parser=":";
@@ -48,10 +55,16 @@ function formData(data){
             sensorData["topic"] = data["topic"];
             result = sensorData;
 
-        }else if(data["topic"] == "vibrate_data"){
+        }
+        else if(data["topic"] == "vibrate_data"){
             vibrationData["data"][0]["value"] = (message=="Y") ? "1":"0";
             vibrationData["topic"] = data["topic"];
             result = vibrationData;
+        }
+        else if(data["topic"] == "rgb_light"){
+            light_data["data"][0]["value"] = (message=="Y") ? "Y":"N";
+            light_data["topic"] = data["topic"];
+            result = light_data;
         }
         
     }

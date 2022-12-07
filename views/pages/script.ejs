@@ -3,6 +3,9 @@ var LED_STATE=false;
 var PORT = document.getElementById("serverInfoElem").getAttribute("data-port");
 var IP = document.getElementById("serverInfoElem").getAttribute("data-ip");
 var END_POINT = document.getElementById("serverInfoElem").getAttribute("data-ep");
+var bulbSvg = document.querySelector('.bi-lightbulb-fill');
+var ledBtn = document.querySelector('.btn');
+const TOPICS=["sensor_data","vibrate_data","rgb_light"];
 
 const TEMP_HUM_SENSOR = [{"sensor":"Temperature","type":"celcius"},
                       {"sensor":"Humidity","type":"%"}];
@@ -152,6 +155,8 @@ const socket = new WebSocket("ws:\/\/"+CURRENT_INFO.ip+":"+CURRENT_INFO.port+CUR
           ADD_CHART_DATA(t_h_chart,serverData);
         }else if(serverData["topic"] == "vibrate_data"){
           ADD_CHART_DATA(v_chart,serverData);
+        }else if(serverData["topic"] == "rgb_light"){
+          handleLight(serverData);
         }
 
         console.log(serverData);
@@ -172,8 +177,7 @@ const socket = new WebSocket("ws:\/\/"+CURRENT_INFO.ip+":"+CURRENT_INFO.port+CUR
 
 
 //button event code...
-var bulbSvg = document.querySelector('.bi-lightbulb-fill');
-var ledBtn = document.querySelector('.btn');
+
 ledBtn.addEventListener('click', function () {
     LED_STATE = !LED_STATE;
     if(LED_STATE){
@@ -185,5 +189,17 @@ ledBtn.addEventListener('click', function () {
     }
 
 });
+
+function handleLight(servData){
+  let value = servData["data"][0]["value"];
+  
+  if(value =="Y"){
+    bulbSvg.setAttribute("fill", "red");
+    LED_STATE = true;
+  }else{
+    bulbSvg.setAttribute("fill", "grey");
+    LED_STATE = false;
+  }
+}
  
 </script>

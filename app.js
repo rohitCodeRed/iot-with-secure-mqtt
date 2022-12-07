@@ -6,6 +6,7 @@ const fs = require('fs');
 const websocket = require("ws");
 const {handle_publish} = require("./mqtt_publisher");
 const {handle_subscription} = require("./mqtt_subscriber");
+const {handleGoogleRequest} = require("./dialogFlow");
 
 app.set('view engine', 'ejs');
 
@@ -29,6 +30,16 @@ app.get('/', (req, res) => {        //get requests to the root ("/") will route 
         "port":SERVER_PORT,
         "endPoint": SERVER_SOCKET_ENDPOINT,
       })                                                    //the .sendFile method needs the absolute path to the file, see: https://expressjs.com/en/4x/api.html#res.sendFile 
+});
+
+// For parsing application/json
+app.use(express.json());
+  
+// For parsing application/x-www-form-urlencoded
+app.use(express.urlencoded({ extended: true }));
+app.post('/dialogflow_iot',function(req,res){
+    
+    handleGoogleRequest(req,res,mConnection,"rgb_light");
 });
 
 const server  = app.listen(SERVER_PORT, () => {            //server starts listening for any attempts from a client to connect at port: {port}
